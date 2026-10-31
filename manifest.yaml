@@ -1,0 +1,9 @@
+# Customization manifest (hosting plan §3.12). The pipeline deploys exactly the git ref the
+# fleet instance file names; this file records what that ref was qualified against.
+application: archivesspace
+qualified_against: "4.2.1"
+atlas_default_plugins: null   # release of the shared Atlas plugin set; none yet
+plugins:
+  - name: local
+    source: this repository
+    version: n/a
