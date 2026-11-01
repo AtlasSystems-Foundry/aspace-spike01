@@ -17,6 +17,7 @@ because the spike's VM clones it anonymously; nothing here is a secret or a cust
 Secrets never enter this repository: database and admin credentials arrive from Azure Key
 Vault through the pipeline.
 
-Unverified until the spike runs: the locale key `brand.title` in
-`plugins/local/public/locales/en.yml` (the directory is documented in research note 02; the
-key is from memory, and the spike report records whether it took effect).
+Verified 2026-11-01 on spike01: the locale key `brand.title` in
+`plugins/local/public/locales/en.yml` sets the public interface's title ("ArchivesSpace
+Public Interface | Spike 01 Archives"), and `config/config.rb` is loaded last by the
+platform's rendered configuration.
