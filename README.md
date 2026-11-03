@@ -8,7 +8,7 @@ because the spike's VM clones it anonymously; nothing here is a secret or a cust
 | Path | What it is |
 |---|---|
 | `manifest.yaml` | What this tree was last qualified against and what it pins: the ArchivesSpace release, the Atlas default-plugin set (`unpinned` until that repository has a release) and each plugin in load order (format: Archie-Engine `apps/archivesspace/MANIFEST.md`) |
-| `.github/workflows/manifest.yml` | Checks `manifest.yaml` with Archie-Engine's `scripts/manifest-summary.py` at a pinned commit |
+| `.github/workflows/manifest.yml` | Checks `manifest.yaml` with Archie-Engine's composite action `manifest-check` at a pinned commit (fails while this repository is public: see the workflow's header) |
 | `config/config.rb` | Site settings; the platform's rendered `config.rb` loads it last, so these win |
 | `plugins/local/` | The local plugin: locale overrides and theme files |
 | `plugins/` | Other plugins, each in its own directory, listed in the manifest |
