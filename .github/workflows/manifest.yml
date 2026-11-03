@@ -1,0 +1,42 @@
+# Check manifest.yaml with Archie-Engine's composite action manifest-check
+# (scripts/manifest-summary.py --check and the schema, apps/archivesspace/MANIFEST.md), so a
+# bad manifest fails the pull request, not the converge. Actions are pinned to commit SHAs
+# (docs.github.com/en/actions/reference/security/secure-use, read 2026-11-03).
+#
+# Archie-Engine is private. Its action can be used from another repository in the
+# organization once Archie-Engine's Actions access level is "organization" (its
+# runbooks/bootstrap.md card GH-E), but GitHub allows that access "only from private
+# repositories" (docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository,
+# read 2026-11-03). While this repository is public, this job cannot resolve the action
+# and fails. No token is used.
+name: manifest
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions: {}
+
+concurrency:
+  group: manifest-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  manifest:
+    name: manifest.yaml against Archie-Engine's schema
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: Check out this repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # The Archie-Engine commit whose reader and schema this repository is checked against.
+      - name: Validate manifest.yaml
+        uses: AtlasSystems-Foundry/Archie-Engine/.github/actions/manifest-check@a4431c4b6b14edc2b859d364288d52d9df9db89a
+        with:
+          manifest: manifest.yaml

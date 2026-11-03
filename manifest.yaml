@@ -1,9 +1,10 @@
-# Customization manifest (hosting plan §3.12). The pipeline deploys exactly the git ref the
-# fleet instance file names; this file records what that ref was qualified against.
-application: archivesspace
-qualified_against: "4.2.1"
-atlas_default_plugins: null   # release of the shared Atlas plugin set; none yet
+# Customization manifest (Archie-Engine apps/archivesspace/MANIFEST.md; hosting plan §3.12).
+# The pipeline deploys exactly the git ref the fleet instance file names; this file says
+# what that tree was qualified against and which plugins it deploys, in load order.
+application_version: "4.2.1"
+# No release of the shared Atlas default-plugin repository exists yet, so nothing is pinned.
+atlas_plugins_version: unpinned
 plugins:
+  # plugins/local in this repository: the public interface's title (locales) and theme files.
   - name: local
-    source: this repository
-    version: n/a
+    source: bundled
