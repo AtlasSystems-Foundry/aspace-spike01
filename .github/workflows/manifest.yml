@@ -1,0 +1,79 @@
+# Check manifest.yaml with Archie-Engine's reader (apps/archivesspace/MANIFEST.md,
+# scripts/manifest-summary.py) so a bad manifest fails the pull request, not the
+# converge. Actions are pinned to commit SHAs
+# (docs.github.com/en/actions/reference/security/secure-use, read 2026-11-03), the same
+# SHAs Archie-Engine's own fleet.yml uses (actions/checkout v7.0.1, actions/setup-python
+# v7.1.0).
+#
+# Archie-Engine is a PRIVATE repository (gh repo view --json visibility, 2026-11-03), and
+# "github.token is scoped to the current repository, so if you want to checkout a
+# different repository that is private" a token of your own is needed
+# (github.com/actions/checkout README, read 2026-11-03). The secret
+# ARCHIE_ENGINE_READ_TOKEN (read-only contents on Archie-Engine) is therefore required
+# until Archie-Engine is public or the reader is published elsewhere; without it the
+# first step fails and says so. Secrets are not given to workflows run from forks.
+name: manifest
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions: {}
+
+concurrency:
+  group: manifest-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # The Archie-Engine commit whose reader and schema this repository is checked against.
+  ARCHIE_ENGINE_REF: 5e2d600edd87f57d88711d6123385f734f31d38a
+
+jobs:
+  manifest:
+    name: manifest.yaml against Archie-Engine's schema
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: Check the Archie-Engine read token is set
+        env:
+          TOKEN_SET: ${{ secrets.ARCHIE_ENGINE_READ_TOKEN != '' }}
+        run: |
+          if [ "$TOKEN_SET" != "true" ]; then
+            echo "::error::ARCHIE_ENGINE_READ_TOKEN is not set: Archie-Engine is private, so its manifest reader cannot be checked out (see the comment at the top of this workflow)."
+            exit 1
+          fi
+
+      - name: Check out this repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: customization
+          persist-credentials: false
+
+      - name: Check out Archie-Engine at the pinned commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: AtlasSystems-Foundry/Archie-Engine
+          ref: ${{ env.ARCHIE_ENGINE_REF }}
+          path: archie-engine
+          token: ${{ secrets.ARCHIE_ENGINE_READ_TOKEN }}
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+
+      - name: Install the pinned tools
+        run: python -m pip install -r archie-engine/requirements-dev.txt
+
+      # Prints the summary the pipeline would write to Archie; a failing manifest exits 1.
+      - name: Validate manifest.yaml and print its summary
+        env:
+          REPOSITORY: ${{ github.server_url }}/${{ github.repository }}.git
+          COMMIT: ${{ github.sha }}
+        run: |
+          python archie-engine/scripts/manifest-summary.py \
+            --repository "$REPOSITORY" --ref "$COMMIT" customization/manifest.yaml
